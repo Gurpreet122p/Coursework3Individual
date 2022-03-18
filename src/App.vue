@@ -2,7 +2,8 @@
 <template> 
 
    <div id="app">
-        <script src='https://coursework2.herokuapp.com/ServiceWorker.js'  type="application/javascript" > </script>
+        <!--  <script src='https://coursework2.herokuapp.com/service-worker.js'  type="application/javascript" > </script>    --> 
+
    <head>
      <h1>{{sitename}}</h1>
 
@@ -13,7 +14,7 @@
 <!-- Service Worker for the app -->
     
     <!-- Manifest -->
-    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="manifest" src="https://coursework2.herokuapp.com/manifest.webmanifest"  >
 
    </head>
        <header>
@@ -23,8 +24,33 @@
             </button>
        </header>
 <main>
+        <!-- Sorting Options -->
+            <div id="sort">
+                <p>Sort by</p>
+                <div v-for="(selectedValue, key) in sorting" :key=" 'A' + key">
+                
+                    <input type="radio" id="key" name="key" value="selectedValue" v-on:click='sortBy(selectedValue)'>
+                    <label for="key"> {{key}}</label><br>
+                </div>
+
+                <p>
+                    <strong>Order:</strong>
+                    <select v-model="orderAscending">
+                    <option disabled value="">Order By</option>
+                    <option v-for="(selectedValue, key) in userOrder" v-on:change='ss' v-bind:value="selectedValue"  :key=" 'A' + key">
+                        {{selectedValue}}
+                        </option>
+                </select>
+                </p>
+            </div>
+
+            <!-- Searching Options -->
+            <div id="search">
+                <input placeholder="Search..." type="text" v-model="search">  {{filteredLessons}}
+            </div>
+ 
   <div v-if="currentView"> 
-      <productlist  :lessons="lessons"  @addProduct='addToCart'/>
+      <lesson  :lessons="lessons"  @addProduct='addToCart'/>
   </div>
  
   <div v-else > 
@@ -38,22 +64,34 @@
 </template>
 
 <script>
+/* eslint-disable */
 import checkout from './components/checkout.vue'
-import productlist from './components/productpage.vue'
+import lesson from './components/lesson.vue'
 
 
 export default {
   name: 'App',
-  components: { checkout, productlist },
+  components: { checkout, lesson },
   data(){
     return{
       sitename: 'BookingSystem',
       cart: [],
       currentView: true,
-      lessons:[]
+      lessons:[],
+     orderAscending: '',
+     search: '',
+     sorting: {Price: 'price',
+                Subject: 'subject',
+                Location: 'location',
+                Availability: 'availableInventory'},
+    userOrder: {
+        a: 'Ascending',
+        b: 'Descending'
+            },
     }
   },
   methods:{
+
    showCheckout() {
                 this.currentView = this.currentView ? false : true;
             },
@@ -151,10 +189,96 @@ export default {
                 }
                              
                 this.lessons.find(ifCan)
-       },
+       }
+  }, 
+  computed: {
+              ss() {
+                if (this.orderAscending === "Ascending") {
+           
+                     this.orderAscending = "Ascending"
+           
+                     return this.lessons.reverse();
+
+                } else if (this.orderAscending === "Descending") {
+                   
+                    this.orderAscending = "Descending"
+                  
+                    return this.lessons.reverse();
+
+                } else {
+                
+                    return this.lessons;
+                }
+
+
+            },
+    filteredLessons() {
+
+
+
+                var localApp = this;
+
+
+ 
+
+                if (!this.search) {
+                   
+                   
+                    fetch('https://coursework2.herokuapp.com/collection/Lessons', {
+                        method: 'GET'
+                    })
+                        .then(function(response) {
+                            if (response.ok) {
+                                console.log('Successfully fetched the Data')
+                            } else {
+                                console.log('Error fetching data')
+                            }
+
+                            return response.json();
+                        })
+                        .then(function(json) {
+                            // use the json
+                            console.log(json)
+                            localApp.lessons = json;
+
+                        }).catch(function(error) {
+                        //Handle error
+                        console.log(error);
+                    });
+                } else {
+
+           
+                    fetch('https://coursework2.herokuapp.com/Search/Lessons/?search=' + this.search + '', {
+                        method: 'GET'
+                    })
+                        .then(function(response) {
+                            if (response.ok) {
+                                console.log('Success')
+                            } else {
+                                console.log('Error fetching data')
+                            }
+
+                            return response.json();
+                        })
+                        .then(function(json) {
+
+                            console.log(json)
+                            localApp.lessons = json;
+
+                        })
+
+                }
+
+
+ 
+ 
+  
+ }
+
+       
   },
         created: function() { //Vue lifecycle hook, called when data is loaded.
-
+/*
                   var localApp = this;
 
 
@@ -181,7 +305,9 @@ export default {
                             //Handle error
                             console.log(error);
                         });
-                
+                */
+
+                this.filteredLessons;
 
         }
   
