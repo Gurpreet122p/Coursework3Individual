@@ -23,7 +23,9 @@
                 <span class="fas fa-shopping-cart"></span> Checkout
             </button>
        </header>
-<main>
+<main> 
+<div v-if="currentView"> 
+
         <!-- Sorting Options -->
             <div id="sort">
                 <p>Sort by</p>
@@ -49,7 +51,7 @@
                 <input placeholder="Search..." type="text" v-model="search">  {{filteredLessons}}
             </div>
  
-  <div v-if="currentView"> 
+
       <lesson  :lessons="lessons"  @addProduct='addToCart'/>
   </div>
  
